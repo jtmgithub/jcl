@@ -1,0 +1,23 @@
+//XXXCURLA JOB (HK,1208),'TEST DB2 REST',                               
+//             CLASS=A,                                             
+//             MSGCLASS=X,                                                      
+//             MSGLEVEL=(1,1),                                                  
+//             REGION=0M                                                    
+//*                                                                             
+//*--------------------------------------------------------------------         
+//* run DB2 rest                                                                
+//*--------------------------------------------------------------------         
+//STEP010  EXEC PGM=IKJEFT1B                                                    
+//SYSTSPRT DD SYSOUT=*                                                          
+//STDOUT   DD SYSOUT=*                                                          
+//SYSEXEC  DD DISP=SHR,DSN=SYS1.SBPXEXEC                                        
+//STDERR   DD SYSOUT=*                                    
+//SYSTSIN  DD *                                                                 
+ PROFILE NOPREFIX MSGID WTPMSG                                                  
+ BPXBATCH SH +                                                                  
+  curl --location --request POST +                                              
+  'http://localhost:5011/services/ZZREST/sampleSelect1' +                  
+  --header 'Content-Type: application/json' +                                   
+  --header 'Authorization: Basic am9obkBleGFtcGxlLmNvbTphYmMxMjM='; +                           
+  exit                                                                          
+/*   
