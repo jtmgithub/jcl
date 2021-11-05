@@ -1,0 +1,50 @@
+//XXXSQLB    JOB   (HK,1208),'SQL UTIL',                                
+//             MSGCLASS=X,MSGLEVEL=(1,1),                                       
+//             CLASS=A,                                                         
+//             REGION=0M,                                                       
+//             NOTIFY=&SYSUID                                                   
+//*                                                                             
+//CHKDB2D  EXEC PGM=IKJEFT1B                                                    
+//SYSTSPRT DD SYSOUT=*                                                          
+//STDOUT   DD SYSOUT=*                                                          
+//STDERR   DD SYSOUT=*                                                          
+//BPXPRINT DD SYSOUT=*                                                          
+//SYSPRINT DD SYSOUT=*                                                          
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2D)                                                              
+  RUN PROGRAM(DSNTEP2)  PLAN(DSNTEP2)  -                                        
+       LIB('DBIIT.RUNLIB.LOAD') -                                               
+       PARMS('ALIGN(LHS)')                                                      
+  END                          
+//SYSIN    DD  *                                                                
+With TABLEA as(                                                                 
+SELECT DB2XML.HTTPGETCLOB                                                       
+     ('http://localhost:8080/RestfulExample/ftocservice'                   
+     , CAST('                                                                   
+<httpHeader responseMsgFormat="errorTagged"                                     
+connectTimeout="5000" readTimeout="5000" useCaches="false">                     
+</httpHeader>' AS CLOB(5K))                                                     
+      ) AS RESPONSE                                                             
+FROM SYSIBM.SYSDUMMY1)                                                          
+SELECT                                                                          
+ JSON_VAL(SYSTOOLS.JSON2BSON(RESPONSE), 'fValue', 's:5') as fValue,             
+ JSON_VAL(SYSTOOLS.JSON2BSON(RESPONSE), 'cValue', 's:4') as cValue              
+FROM TABLEA;                                                                    
+--                                                                              
+With TABLEA as(                                                                 
+SELECT DB2XML.HTTPGETCLOB                                                       
+     ('http://localhost:8080/RestfulExample/ctofservice'                   
+     , CAST('                                                                   
+<httpHeader responseMsgFormat="errorTagged"                                     
+connectTimeout="5000" readTimeout="5000" useCaches="false">                     
+</httpHeader>' AS CLOB(5K))                                                     
+               ) AS RESPONSE                                                    
+          FROM SYSIBM.SYSDUMMY1                                                 
+)                                                                               
+SELECT XT.* FROM                                                                
+TABLEA, XMLTABLE(                                                               
+  '/ctofservice' PASSING XMLPARSE(RESPONSE)                                     
+  COLUMNS                                                                       
+    celsius    VARCHAR(10)        PATH 'celsius',                               
+    ctofoutput VARCHAR(10)        PATH 'ctofoutput') XT;                        
+/*                                                                              
